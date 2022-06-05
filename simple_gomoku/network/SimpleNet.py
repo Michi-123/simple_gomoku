@@ -6,17 +6,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import importlib
-import config as CFG
-importlib.reload(CFG)
-
 class SimpleNet(nn.Module):
 
-    def __init__(self):
+    def __init__(self, CFG):
         super(SimpleNet, self).__init__()
+        self.CFG = CFG
 
     def forward(self, x):
-        p = 1 / CFG.action_size
-        p = torch.FloatTensor([[p] * CFG.action_size])
+        p = 1 / self.FG.action_size
+        p = torch.FloatTensor([[p] * self.CFG.action_size])
         v = torch.FloatTensor([[0]])
         return  p, v
