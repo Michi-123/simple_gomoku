@@ -1,3 +1,3 @@
 # simple_gomoku
-python code
+python code for Udemy.
 
