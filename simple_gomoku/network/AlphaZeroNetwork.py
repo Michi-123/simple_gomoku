@@ -1,165 +1,137 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numpy as np
 
-""" Import PyTorch framework """
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-import importlib
-import config as CFG
-importlib.reload(CFG)
-
-class Resnet(nn.Module):
-
+class Test:
     def __init__(self):
-        super(Resnet, self).__init__()
+        print("Hello world!")
 
-        """
-        Iniialize a residual block with two convolutions followed by batchnorm layers
-        """
-        self.conv1 = nn.Conv2d(CFG.resnet_channels, CFG.resnet_channels, kernel_size=3, padding='same', bias=False)
-        self.batchnorm1 = nn.BatchNorm2d(CFG.resnet_channels)
+class Gomoku():
 
-        self.conv2 = nn.Conv2d(CFG.resnet_channels, CFG.resnet_channels, kernel_size=3, padding='same', bias=False)
-        self.batchnorm2 = nn.BatchNorm2d(CFG.resnet_channels)
+    def __init__(self, row=5, width=6):
+        self.row = row
+        self.width = width
+        self.action_size = self.width * self.width
+        self.board_edges = self._get_board_edges()
+        """ search_directions: [-w-1, -w, -w+1, -1, 1, w-1, w, w+1] """     
+        self.search_directions = self._get_search_directions() # ((0,1),(1,0),(1,1),(-1,1))
 
-    def conv_block(self, x):
-        x = self.batchnorm1(self.conv1(x))
-        x = F.relu(x, inplace=True)
-        x = self.batchnorm2(self.conv2(x))
-        return x
+        self.reset()
 
-    def forward(self, x):
-        """
-        Combine output with the original input
-        """
-        x = x + self.conv_block(x)
-        x = F.relu(x, inplace=True)
-        return x
+    def reset(self):
+        self.state = [[0 for x in range(0, self.width)] for y in range(0, self.width)]
+        self.done = False
+        self.player = -1
+        self.reward = 0        
+        return self.state
 
+    def step(self, a):
 
-class AlphaZeroNetwork(nn.Module):
+        x1, x2 = (a // self.width), (a % self.width)
 
-    def __init__(self):
-        super(AlphaZeroNetwork, self).__init__()
+        self.state[x1][x2] = self.player
+        self.player = -self.player
 
-        in_channels = CFG.history_size * 2 + 1
+        if self._is_done(a):
+            self.done = True
+            self.reward = -1 # 打つ手がないので負け
 
-        """ Convolution block """
-        self.conv1 = nn.Conv2d(in_channels, CFG.resnet_channels, kernel_size=3,
-                               stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(CFG.resnet_channels)
+        elif self._is_draw():
+            self.done = True
+            self.reward = 0
+
+        else:
+            pass
+      
+        return self.state, self.reward, self.done
+
+    def get_legal_actions(self, state):
+        state = np.array(state).reshape(-1)
+        return np.where(state==0)[0]
+
+    def show(self):
+        print(self.s)
+
+    def _pass(self):
+        self.player = -self.player
+        pass
+
+    def _is_done(self, a):
+        """ a: action """
+       
+        x1, x2 = a // self.width, a % self.width 
+        player = self.state[x1][x2] # どちらの手番で勝ったか？
+        directions = ((0,1),(1,0),(1,1),(-1,1))
+
+        for dir in directions:
+            counter = 1
+
+            for sign in [+1, -1]:
+                ite = 0
+                while True:
+                    ite += 1
+                    tp = (x1 + ite * dir[0] * sign, x2 + ite * dir[1] * sign)
+                    r, c = tp[0], tp[1]
+                    if (r >= 0 and c >= 0 and r < self.width and c < self.width) and self.state[r][c] == player:
+                        counter+= 1
+                    else:
+                        break
+
+            if counter >= self.row:
+                """ 勝った場合の処理 """
+                self.done = True
+                return True
+
+        return False
+
+    def _search(self, pos, direction, count):
+        x1, x2 = (pos // self.width), (pos % self.width)
+
+        if self.state[x1][x2] == self.player:
+            count += 1
+        else:
+            return False
+
+        if count == self.row:
+            return True
         
-        """ Resnet """
-        resnet = []
-        for _ in range(CFG.n_residual_block):
-            resnet += [Resnet()]
-        self.resnet = nn.Sequential(*resnet)
+        next_pos = pos + direction
 
-        # """ Policy for Go """
-        # num_filter = 2
-        # self.conv_policy = nn.Conv2d(CFG.resnet_channels, num_filter,
-        #                             kernel_size=1, stride=1, padding='same', 
-        #                             bias=False)
-        # self.bn_policy = nn.BatchNorm2d(num_filter)
+        if next_pos in self.board_edges:
+            return False
 
-        # action_pass = 1
-        # self.fc_policy = nn.Linear(in_features=CFG.action_size * num_filter, 
-        #                           out_features=CFG.action_size + action_pass)
+        if next_pos >= self.width * self.width:
+            return False
 
+        self._search(next_pos, direction, count)
 
-        """ Policy for chess and shogi. fileter数と kernel サイズに注意! """
-        num_filter = 1
-        self.conv_policy1 = nn.Conv2d(CFG.resnet_channels, num_filter,
-                                    kernel_size=1, stride=1, padding='same', 
-                                    bias=False)
-        self.bn_policy1 = nn.BatchNorm2d(num_filter)
-        
-        self.conv_policy2 = nn.Conv2d(num_filter, CFG.action_size,
-                                    kernel_size=CFG.board_width, # 局面と同じサイズにする
-                                    stride=1, padding=0, 
-                                    bias=False)
-        self.bn_policy2 = nn.BatchNorm2d(CFG.action_size)
+    def _is_draw(self):
+        if np.prod(self.state) != 0:
+            """ 総積 """
+            return True
 
+        return False
 
-        """ State value """
-        conv_value_out_channels = 1
-        self.conv_value = nn.Conv2d(CFG.resnet_channels, conv_value_out_channels,
-                                    kernel_size=1, stride=1, padding='same', 
-                                    bias=False)
-        self.bn_value = nn.BatchNorm2d(conv_value_out_channels)
+    def _get_board_edges(self):
 
-        fc_value_in_channels = CFG.action_size * conv_value_out_channels
+        edges = []
+        w = self.width
+        opposite_v = self.action_size - w
 
-        self.fc_value1 = nn.Linear(in_features=fc_value_in_channels, 
-                                    out_features=CFG.hidden_size)
-        self.fc_value2 = nn.Linear(in_features=CFG.hidden_size, out_features=1)
+        for i in range(w):
+            edges.append(i)
+            edges.append(i + opposite_v)
 
-        """ Weight initializtion """
-        self._create_weights()
+            if (i * w) not in edges:
+                edges.append(i * w)
 
-    def forward(self, x):
-        x = self.body(x)
-        p = self.policy_head(x)
-        v = self.value_head(x)
-        return p, v
+            opposite_h = i * w + w - 1
 
-    def body(self, x):
-        
-        """ Input layer (Convolitional layer) """
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = F.relu(x, inplace=True)
+            if (opposite_h) not in edges:
+                edges.append(opposite_h)
 
-        """ Residual blocks """
-        for i in range(CFG.n_residual_block):
-            x = self.resnet(x)
+        return edges
 
-        return x
-
-    # def policy_head(self, x):
-    #     x = self.conv_policy(x)
-    #     x = self.bn_policy(x)
-    #     x = F.relu(x, inplace=True)
-    #     x = torch.flatten(x, start_dim=1) # バッチは除く
-    #     x = self.fc_policy(x)
-    #     x = F.softmax(x, dim=1) # バッチは除く F.log_softmax?
-    #     return x # p_fc torch.Size([1, 25])
-
-    def policy_head(self, x):
-        x = self.conv_policy1(x) # [1, 1, 5, 5]
-        x = self.bn_policy1(x)
-        x = F.relu(x, inplace=True)
-        x = self.conv_policy2(x) # [1, 25, 1, 1]
-        x = self.bn_policy2(x)
-        x = F.relu(x, inplace=True)
-        x = F.softmax(x, dim=1) # [1, 25, 1, 1] # バッチは除く
-
-        x = torch.squeeze(x, dim=2) # バッチサイズが１の場合があるので
-        x = torch.squeeze(x, dim=2) # ２回に分けて後ろから次元削減
-        return x
-
-    def value_head(self, x):
-        x = self.conv_value(x)
-        x = self.bn_value(x)
-        x = F.relu(x)
-        x = torch.flatten(x, start_dim=1) # バッチは除く
-        x = self.fc_value1(x)
-        x = F.relu(x, inplace=True)
-        x = self.fc_value2(x)
-        x = torch.tanh(x)
-        return x
-
-    def _create_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
-                # nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight)
-                nn.init.constant_(m.bias, 0)
-
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+    def _get_search_directions(self):
+        w = self.width
+        return [1, w-1, w, w+1]
