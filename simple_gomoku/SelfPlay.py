@@ -5,24 +5,27 @@
 import copy
 from tqdm import tqdm
 
-import importlib
-import config as CFG
-importlib.reload(CFG)
+# import importlib
+# import config as CFG
+# importlib.reload(CFG)
 
 # from util import pobability_distribution, one_hot_encording, indicator
 from Util import Util
 from MCTS import Node
 from agent import Agent
 
-util = Util(CFG)
 
 class SelfPlay():
     """ 経験を収集する自己対局クラス """
-    def __init__(self, env, model):
-        self.model = model
+    def __init__(self, env, model, CFG):
         self.env = env
+        self.model = model
+        self.CFG = CFG
+        self.util = Util(CFG)
+        
         self.dataset = []
         self.player = Agent(env, model, train=True)
+
 
     def __call__(self, num_game_count=1):
         """ Self playのループ処理 """
@@ -32,13 +35,13 @@ class SelfPlay():
             self.play(node)
 
         """ 蓄積した経験データのセットを最大サイズで切り捨て """
-        self.dataset = self.dataset[-CFG.max_dataset_size:]
+        self.dataset = self.dataset[-self.CFG.max_dataset_size:]
 
         return self.dataset
 
     def play(self, node, play_count=1):
         """ 探索の実行 """
-        util.indicator(play_count)
+        self.util.indicator(play_count)
 
         """ AlphaZero player """
         next_node = self.player.alpha_zero(node, play_count)
@@ -71,7 +74,7 @@ class SelfPlay():
         input_features = copy.deepcopy(node.input_features).tolist()[0]
         
         # pi = one_hot_encording(node)     # 0 0 0 1 
-        pi = util.pobability_distribution(node) # 0.1 0.2 0.3 0.4 
+        pi = self.util.pobability_distribution(node) # 0.1 0.2 0.3 0.4 
 
         plain = { # for debug
                  'state': states[0], 
