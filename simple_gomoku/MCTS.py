@@ -3,7 +3,7 @@ import copy
 from math import sqrt
 import numpy as np
 import torch
-from Util import Util
+from . Util import Util
 
 class Node():
     """
