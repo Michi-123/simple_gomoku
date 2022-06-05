@@ -9,7 +9,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from Util import Util
+from . Util import Util
+
+class Test:
+    def __init__(self):
+        print("Hello world!")
 
 class Train():
     
