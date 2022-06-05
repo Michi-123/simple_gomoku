@@ -2,9 +2,9 @@ import numpy as np
 from tqdm import tqdm
 import copy
 
-from agent import Agent
-from MCTS import Node
-from Util import Util
+from . agent import Agent
+from . MCTS import Node
+from . Util import Util
 
 class Evaluate():
     def __init__(self, env, model, CFG):
