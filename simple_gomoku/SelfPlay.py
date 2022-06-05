@@ -5,15 +5,9 @@
 import copy
 from tqdm import tqdm
 
-# import importlib
-# import config as CFG
-# importlib.reload(CFG)
-
-# from util import pobability_distribution, one_hot_encording, indicator
 from Util import Util
 from MCTS import Node
 from agent import Agent
-
 
 class SelfPlay():
     """ 経験を収集する自己対局クラス """
@@ -31,7 +25,7 @@ class SelfPlay():
         """ Self playのループ処理 """
         for game_count in range(num_game_count): # AlphaGo Zero: 250,000
             state = self.env.reset()
-            node = Node(state)
+            node = Node(self.CFG, state)
             self.play(node)
 
         """ 蓄積した経験データのセットを最大サイズで切り捨て """
