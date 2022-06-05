@@ -2,9 +2,9 @@ import numpy as np
 from tqdm import tqdm
 import copy
 
-from ..agent import Agent
-from ..Util import Util
-from ..MCTS import MCTS, Node
+from . agent import Agent
+from . Util import Util
+from . MCTS import MCTS, Node
 
 class Test:
     def __init__(self):
