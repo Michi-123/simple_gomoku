@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 import random
 import copy 
-from Util import Util
-from MCTS import MCTS
+from ..Util import Util
+from ..MCTS import MCTS
 
-
+class Test:
+    def __init__(self):
+        print("Hello world!")
+        
 class Agent:
 
     def __init__(self, env, model, CFG, train=True):
