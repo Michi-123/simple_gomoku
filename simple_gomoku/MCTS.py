@@ -4,18 +4,12 @@ from math import sqrt
 import numpy as np
 import torch
 from Util import Util
-import importlib
-import config as CFG
-importlib.reload(CFG)
-
-device = torch.device(CFG.device)
-util = Util(CFG)
 
 class Node():
     """
     Node: Represents a game state
     """
-    def __init__(self, state=None):
+    def __init__(self, CFG, state=None):
         self.states = None
         self.is_root = False
         self.child_nodes = []
@@ -23,9 +17,10 @@ class Node():
         self.actions = [0] * CFG.history_size # for one-hot
         self.player = CFG.first_player
         self.input_features = None
+        self.util = Util(CFG)
 
         if state:
-            self.states = util.create_states(state)
+            self.states = self.util.create_states(state)
 
         """ Edge """
         self.n = 0 # 訪問回数 (visit count)
@@ -56,7 +51,7 @@ class MCTS():
         root_node.is_root = True
 
         """ シミュレーション """
-        for i in range(CFG.num_simulation): # AlphaGo Zero 1600 sim / AlphaZero 800 sim
+        for i in range(self.CFG.num_simulation): # AlphaGo Zero 1600 sim / AlphaZero 800 sim
             self.env.reset()
             self.env.state = copy.deepcopy(root_node.states[0])
             self.env.player = root_node.player  # resetされたので、Self play でのプレーヤーに再設定
@@ -74,13 +69,7 @@ class MCTS():
 
         """ ゲームオーバー """
         if self.env.done:
-            # v = abs(self.env.reward) # 0 or 1
             v = -self.env.reward # 0 or -1
-            # print('Player', self.env.player, node.player)
-            # print('Reward', self.env.reward)
-            # print(self.env.state)
-            # print(node.states[0])
-            # print('------------------------------------')
             self.backup(node, v) # 相手の手番となるノード
             return -v
 
@@ -108,9 +97,9 @@ class MCTS():
         Ｑ（相手にとっては－Ｑ）＋Ｕの最大値から、最良の行動を選ぶ
         """
         pucts = [] # PUCTの値
-        cpuct = CFG.puct # 1-6
+        cpuct = self.CFG.puct # 1-6
         s = node.n - 1 # Σ_b (N(s,b)) と同じこと
-        child_nodes = util.get_child_nodes(node) # エッジの取得
+        child_nodes = self.util.get_child_nodes(node) # エッジの取得
 
         if node.is_root:
             """ 事前確率にディリクレノイズを追加 """
@@ -133,7 +122,7 @@ class MCTS():
     def expand(self, node):
 
         """ 入力特徴の作成 """
-        features = util.state2feature(node)
+        features = self.util.state2feature(node)
 
         """ 推論 """
         p, v = self.model(features)
@@ -169,7 +158,7 @@ class MCTS():
         """ 温度パラメーター """
         if self.train:
             """ 訓練時は最初のｎ手までは確率的に """
-            tau = 1 if play_count < CFG.tau_limit else 0
+            tau = 1 if play_count < self.CFG.tau_limit else 0
         else:
             """ 評価時には決定的に """
             tau = 0
@@ -200,8 +189,8 @@ class MCTS():
         P(s, a) = (1 - ε) * p(a) + ε*η(a)
         where η～ Dir(0.03), ε= 0.25
         """
-        e = CFG.Dirichlet_epsilon
-        alpha = CFG.Dirichlet_alpha
+        e = self.CFG.Dirichlet_epsilon
+        alpha = self.CFG.Dirichlet_alpha
 
         dirichlet_noise = np.random.dirichlet([alpha] * len(child_nodes))
 
@@ -219,8 +208,8 @@ class MCTS():
         legal_actions = self.env.get_legal_actions(node.states[0])
 
         for action in legal_actions:
-            states = util.get_next_states(node.states, action, node.player)
-            actions = util.get_next_actions(node.actions)
+            states = self.util.get_next_states(node.states, action, node.player)
+            actions = self.util.get_next_actions(node.actions)
 
             child_node = Node()
             child_node.p = p[action]
