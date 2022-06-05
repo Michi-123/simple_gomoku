@@ -18,7 +18,7 @@ class SelfPlay():
         self.util = Util(CFG)
         
         self.dataset = []
-        self.player = Agent(env, model, train=True)
+        self.player = Agent(env, model, CFG, train=True)
 
 
     def __call__(self, num_game_count=1):

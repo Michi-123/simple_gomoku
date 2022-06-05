@@ -3,20 +3,17 @@
 import random
 import copy 
 from Util import Util
-from MCTS import MCTS, Node
+from MCTS import MCTS
 
 
 class Agent:
 
-    def __init__(self, env, model=None, train=True):
+    def __init__(self, env, model, CFG, train=True):
 
         self.env = env
 
         """ MCTSをインスタンス化 """
-        if model:
-            self.train = train
-            self.model = model
-            self.mcts = MCTS(env, model, train)
+        self.mcts = MCTS(env, model, CFG, train)
 
 
     def alpha_zero(self, node, play_count=1):

@@ -17,10 +17,13 @@ class Node():
         self.actions = [0] * CFG.history_size # for one-hot
         self.player = CFG.first_player
         self.input_features = None
-        self.util = Util(CFG)
 
         if state:
-            self.states = self.util.create_states(state)
+            state = copy.deepcopy(state) 
+            w = CFG.board_width
+            n = CFG.history_size - 1 # 追加するので減算
+            self.states = [[[0] * w] * w] * n
+            self.states.insert(0, state)
 
         """ Edge """
         self.n = 0 # 訪問回数 (visit count)
@@ -33,12 +36,14 @@ class MCTS():
     """
     root node: 探索開始ノード
     """
-    def __init__(self, env, model, train=True):
+    def __init__(self, env, model, CFG, train=True):
         self.env = copy.deepcopy(env)
         self.env.reset()
         self.model = model
         self.player = None
         self.train = train
+        self.CFG = CFG
+        self.util = Util(CFG)
         
         if not train:
             self.model.eval()
@@ -211,7 +216,7 @@ class MCTS():
             states = self.util.get_next_states(node.states, action, node.player)
             actions = self.util.get_next_actions(node.actions)
 
-            child_node = Node()
+            child_node = Node(self.CFG)
             child_node.p = p[action]
             child_node.action = action
             child_node.actions = actions

@@ -4,12 +4,7 @@ import numpy as np
 import copy
 import torch
 
-# import importlib
-# import config as CFG
-# importlib.reload(CFG)
-
 class Util:
-
     def __init__(self, CFG):
         self.CFG = CFG
 
@@ -100,12 +95,12 @@ class Util:
 
         return child_nodes
 
-    def create_states(self, state):
-        state = copy.deepcopy(state) 
-        states = [[[0] * self.CFG.board_width] * self.CFG.board_width] * (self.CFG.history_size - 1)
-        states.insert(0, state)
+    # def create_states(self, state):
+    #     state = copy.deepcopy(state) 
+    #     states = [[[0] * self.CFG.board_width] * self.CFG.board_width] * (self.CFG.history_size - 1)
+    #     states.insert(0, state)
 
-        return states
+    #     return states
 
 
     def state2feature(self, node):# gomoku用
