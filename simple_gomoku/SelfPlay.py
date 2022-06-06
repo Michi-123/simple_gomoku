@@ -18,7 +18,7 @@ class SelfPlay():
         self.util = Util(CFG)
         
         self.dataset = []
-        self.player = Agent(env, model, CFG, train=True)
+        self.agent = Agent(env, model, CFG, train=True)
 
 
     def __call__(self, num_game_count=1):
@@ -38,7 +38,7 @@ class SelfPlay():
         self.util.indicator(play_count)
 
         """ AlphaZero player """
-        next_node = self.player.alpha_zero(node, play_count)
+        next_node = self.agent.alpha_zero(node, play_count)
 
         action = next_node.action
 
