@@ -1,5 +1,5 @@
 import sys
 sys.path.append('../')
 
-from .simple_gomoku import *
+from .gomoku import *
 from .TicTacToe import *
