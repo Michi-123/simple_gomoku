@@ -41,10 +41,24 @@ class Util:
             )
         )
 
-    def save(self, model):
+    def save(self, model, iteration_counter):
         try:
             torch.save(model.state_dict(), self.CFG.model_path)
-        except:
+            
+            if iteration_counter % self.CFG.model_save_frequency == 0:
+                print("Make chake point")
+
+                delimiter_index = self.CFG.model_path.rfind('/') #
+                extension_index = self.CFG.model_path.rfind('.') #
+                extension = self.CFG.model_path[extension_index : ]
+                model_name = self.CFG.model_path[delimiter_index + 1 : extension_index]
+                model_name += "(%s)" %iteration_counter
+                check_point_path = self.CFG.check_point_relative_dir + '/' + model_name + extension
+
+                torch.save(model.state_dict(), check_point_path)
+                print(check_point_path)
+            
+            except:
             print("model save error.")
             raise()
 
