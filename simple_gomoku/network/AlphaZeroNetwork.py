@@ -48,7 +48,7 @@ class AlphaZeroNetwork(nn.Module):
 
         """ Convolution block """
         self.conv1 = nn.Conv2d(in_channels, CFG.resnet_channels, kernel_size=3,
-                               stride=1, padding=1, bias=False)
+                               stride=1, padding='same', bias=False)
         self.bn1 = nn.BatchNorm2d(CFG.resnet_channels)
         
         """ Resnet """
