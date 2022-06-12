@@ -58,7 +58,7 @@ class Util:
                 torch.save(model.state_dict(), check_point_path)
                 print(check_point_path)
             
-            except:
+        except:
             print("model save error.")
             raise()
 
