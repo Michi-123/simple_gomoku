@@ -124,7 +124,7 @@ class AlphaZeroNetwork(nn.Module):
     #     x = F.relu(x, inplace=True)
     #     x = torch.flatten(x, start_dim=1) # バッチは除く
     #     x = self.fc_policy(x)
-    #     x = F.softmax(x, dim=1) # バッチは除く F.log_softmax?
+    #     x = F.softmax(x, dim=1) # バッチは除く
     #     return x # p_fc torch.Size([1, 25])
 
     def policy_head(self, x):
