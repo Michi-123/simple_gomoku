@@ -45,7 +45,7 @@ class Util:
         try:
             torch.save(model.state_dict(), self.CFG.model_path)
             
-            if iteration_counter % self.CFG.model_save_frequency == 0:
+            if iteration_counter % self.CFG.make_check_point_frequency == 0:
                 print("Make chake point")
 
                 delimiter_index = self.CFG.model_path.rfind('/') #
