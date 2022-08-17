@@ -6,14 +6,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import importlib
-import config as CFG
-importlib.reload(CFG)
-
 class Resnet(nn.Module):
 
     def __init__(self):
-        super(Resnet, self).__init__()
+        super(Resnet, self, CFG).__init__()
 
         """
         Iniialize a residual block with two convolutions followed by batchnorm layers
@@ -41,7 +37,7 @@ class Resnet(nn.Module):
 
 class AlphaZeroNetwork(nn.Module):
 
-    def __init__(self):
+    def __init__(self, CFG):
         super(AlphaZeroNetwork, self).__init__()
 
         in_channels = CFG.history_size * 2 + 1
@@ -54,7 +50,7 @@ class AlphaZeroNetwork(nn.Module):
         """ Resnet """
         resnet = []
         for _ in range(CFG.n_residual_block):
-            resnet += [Resnet()]
+            resnet += [Resnet(CFG)]
         self.resnet = nn.Sequential(*resnet)
 
         # """ Policy for Go """
