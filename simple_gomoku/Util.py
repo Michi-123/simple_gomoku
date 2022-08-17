@@ -4,10 +4,6 @@ import numpy as np
 import copy
 import torch
 
-class Test:
-    def __init__(self):
-        print("Hello world!")
-        
 class Util:
     def __init__(self, CFG):
         self.CFG = CFG
