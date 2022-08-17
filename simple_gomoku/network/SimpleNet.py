@@ -13,7 +13,7 @@ class SimpleNet(nn.Module):
         self.CFG = CFG
 
     def forward(self, x):
-        p = 1 / self.FG.action_size
+        p = 1 / self.CFG.action_size
         p = torch.FloatTensor([[p] * self.CFG.action_size])
         v = torch.FloatTensor([[0]])
         return  p, v
