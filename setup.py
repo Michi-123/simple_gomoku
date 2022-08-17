@@ -12,7 +12,7 @@ with open(os.path.join(current_path, 'README.md'), encoding='utf-8') as f:
 setup(
     name='simple_gomoku', 
     packages=find_packages(exclude=('*.pyc',)),
-    version='1.1.4',
+    version='1.1.5',
     license='MIT', 
     install_requires=[],
     author='M.Uchiyama',
