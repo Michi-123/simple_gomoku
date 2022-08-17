@@ -45,8 +45,8 @@ class MCTS():
         self.CFG = CFG
         self.util = Util(CFG)
 
-        if not train:
-            self.model.eval()
+        #if not train:
+        #    self.model.eval()
 
     def __call__(self, node, play_count=1):
 
@@ -68,6 +68,9 @@ class MCTS():
 
         next_node = self.play(root_node, play_count)
 
+        """ 訪問回数で算出した方策を現在のノードに格納 """
+        node.child_nodes = root_node.child_nodes
+
         return next_node
 
     def search(self, node):
@@ -76,25 +79,27 @@ class MCTS():
         if self.env.done:
             v = -self.env.reward # 0 or -1
             self.backup(node, v) # 相手の手番となるノード
-            return -v
+            return v
 
         """ リーフ """
         if len(node.child_nodes) == 0:
-            v = self.expand(node)
+            v = -self.expand(node)
             self.backup(node, v)
-            return -v
+            return v
+
 
         """ 選択 """
         next_node = self.select(node)
+
         self.env.step(next_node.action)
 
         """ 探索（相手の手番で） """
-        v = self.search(next_node)
+        v = -self.search(next_node)
 
         """ バックアップ """ 
         self.backup(node, v) 
 
-        return -v
+        return v
 
 
     def select(self, node):
@@ -109,6 +114,7 @@ class MCTS():
         if node.is_root:
             """ 事前確率にディリクレノイズを追加 """
             child_nodes = self.add_dirichlet_noise(child_nodes)
+
         for child_node in child_nodes:
             p = child_node.p
             n = child_node.n
@@ -118,7 +124,10 @@ class MCTS():
   
         max_index = np.argmax(pucts)
         next_node = node.child_nodes[max_index]
+
         return next_node
+
+
     """ 展開と評価 """
     def expand(self, node):
 
@@ -127,27 +136,35 @@ class MCTS():
 
         """ 推論 """
         p, v = self.model(features)
+
         """ バッチの次元を削除 """
         p = p[0].tolist()
         v = v[0].tolist()[0] # スカラーに変換
+
         """ 子ノードの生成 """
         self.add_child_nodes(node, p)
+
         return v 
+
     def backup(self, node, v):
         """ バックアップ """
         node.n += 1
         node.w += v
         node.Q = node.w / node.n
+
     def play(self, node, play_count):
         """ 実行
+
         探索が完了すると、 N^(1/τ)に比例した探索確率πで行動を決定
         Nはルート状態からの各ノードへの訪問回数、
         τは温度を制御するパラメータ。
+
         τ: 温度パラメーター
             -∞: 決定的に選択
             1  : 確率的に選択
             ∞ : ランダムに選択
         """
+
         """ 温度パラメーター """
         if self.train:
             """ 訓練時は最初のｎ手までは確率的に """
@@ -160,6 +177,7 @@ class MCTS():
         for child_node in node.child_nodes:
             N.append(child_node.n)
 
+        """ 探索(Exploration)か 経験の利用(Exploitation)か """
         if tau > 0:
             """ 確率的に選択 """
             N_pow = np.power(N, 1/tau)
@@ -167,12 +185,18 @@ class MCTS():
             pi = N_pow / N_sum
             p = np.random.choice(pi, p=pi)
             index = np.argwhere(pi==p)[0][0].tolist()
+            """ このindexで行動すると、既に置き石がある目を上書きしてしまう。
+            また状態価値の教師データも変わってしまう。"""
+
         else:
             """ 決定的に選択 """
             index = np.argmax(N)
+
         """ 次のノードへ遷移 """
         next_node = node.child_nodes[index]
+
         return next_node
+
     def add_dirichlet_noise(self, child_nodes):
         """
         ルートノードの事前確率にディリクレノイズを加えて、さらなる探索
