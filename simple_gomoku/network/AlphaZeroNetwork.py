@@ -133,7 +133,6 @@ class AlphaZeroNetwork(nn.Module):
         x = F.relu(x, inplace=True)
         x = self.conv_policy2(x) # [1, 25, 1, 1]
         x = self.bn_policy2(x)
-        x = F.relu(x, inplace=True)
         x = F.softmax(x, dim=1) # [1, 25, 1, 1] # バッチは除く
 
         x = torch.squeeze(x, dim=2) # バッチサイズが１の場合があるので
