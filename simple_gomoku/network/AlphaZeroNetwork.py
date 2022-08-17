@@ -10,15 +10,17 @@ class Resnet(nn.Module):
 
     def __init__(self, CFG):
         super().__init__()
+        
+        self.CFG = CFG
 
         """
         Iniialize a residual block with two convolutions followed by batchnorm layers
         """
-        self.conv1 = nn.Conv2d(CFG.resnet_channels, CFG.resnet_channels, kernel_size=3, padding='same', bias=False)
-        self.batchnorm1 = nn.BatchNorm2d(CFG.resnet_channels)
+        self.conv1 = nn.Conv2d(self.CFG.resnet_channels, self.CFG.resnet_channels, kernel_size=3, padding='same', bias=False)
+        self.batchnorm1 = nn.BatchNorm2d(self.CFG.resnet_channels)
 
-        self.conv2 = nn.Conv2d(CFG.resnet_channels, CFG.resnet_channels, kernel_size=3, padding='same', bias=False)
-        self.batchnorm2 = nn.BatchNorm2d(CFG.resnet_channels)
+        self.conv2 = nn.Conv2d(self.CFG.resnet_channels, self.CFG.resnet_channels, kernel_size=3, padding='same', bias=False)
+        self.batchnorm2 = nn.BatchNorm2d(self.CFG.resnet_channels)
 
     def conv_block(self, x):
         x = self.batchnorm1(self.conv1(x))
@@ -39,58 +41,59 @@ class AlphaZeroNetwork(nn.Module):
 
     def __init__(self, CFG):
         super().__init__()
-
-        in_channels = CFG.history_size * 2 + 1
+        
+        self.CFG = CFG        
+        in_channels = self.CFG.history_size * 2 + 1
 
         """ Convolution block """
-        self.conv1 = nn.Conv2d(in_channels, CFG.resnet_channels, kernel_size=3,
+        self.conv1 = nn.Conv2d(in_channels, self.CFG.resnet_channels, kernel_size=3,
                                stride=1, padding='same', bias=False)
-        self.bn1 = nn.BatchNorm2d(CFG.resnet_channels)
+        self.bn1 = nn.BatchNorm2d(self.CFG.resnet_channels)
         
         """ Resnet """
         resnet = []
-        for _ in range(CFG.n_residual_block):
-            resnet += [Resnet(CFG)]
+        for _ in range(self.CFG.n_residual_block):
+            resnet += [Resnet(self.CFG)]
         self.resnet = nn.Sequential(*resnet)
 
         # """ Policy for Go """
         # num_filter = 2
-        # self.conv_policy = nn.Conv2d(CFG.resnet_channels, num_filter,
+        # self.conv_policy = nn.Conv2d(self.CFG.resnet_channels, num_filter,
         #                             kernel_size=1, stride=1, padding='same', 
         #                             bias=False)
         # self.bn_policy = nn.BatchNorm2d(num_filter)
 
         # action_pass = 1
-        # self.fc_policy = nn.Linear(in_features=CFG.action_size * num_filter, 
-        #                           out_features=CFG.action_size + action_pass)
+        # self.fc_policy = nn.Linear(in_features=self.CFG.action_size * num_filter, 
+        #                           out_features=self.CFG.action_size + action_pass)
 
 
         """ Policy for chess and shogi. fileter数と kernel サイズに注意! """
         num_filter = 1
-        self.conv_policy1 = nn.Conv2d(CFG.resnet_channels, num_filter,
+        self.conv_policy1 = nn.Conv2d(self.CFG.resnet_channels, num_filter,
                                     kernel_size=1, stride=1, padding='same', 
                                     bias=False)
         self.bn_policy1 = nn.BatchNorm2d(num_filter)
         
-        self.conv_policy2 = nn.Conv2d(num_filter, CFG.action_size,
-                                    kernel_size=CFG.board_width, # 局面と同じサイズにする
+        self.conv_policy2 = nn.Conv2d(num_filter, self.CFG.action_size,
+                                    kernel_size=self.CFG.board_width, # 局面と同じサイズにする
                                     stride=1, padding=0, 
                                     bias=False)
-        self.bn_policy2 = nn.BatchNorm2d(CFG.action_size)
+        self.bn_policy2 = nn.BatchNorm2d(self.CFG.action_size)
 
 
         """ State value """
         conv_value_out_channels = 1
-        self.conv_value = nn.Conv2d(CFG.resnet_channels, conv_value_out_channels,
+        self.conv_value = nn.Conv2d(self.CFG.resnet_channels, conv_value_out_channels,
                                     kernel_size=1, stride=1, padding='same', 
                                     bias=False)
         self.bn_value = nn.BatchNorm2d(conv_value_out_channels)
 
-        fc_value_in_channels = CFG.action_size * conv_value_out_channels
+        fc_value_in_channels = self.CFG.action_size * conv_value_out_channels
 
         self.fc_value1 = nn.Linear(in_features=fc_value_in_channels, 
-                                    out_features=CFG.hidden_size)
-        self.fc_value2 = nn.Linear(in_features=CFG.hidden_size, out_features=1)
+                                    out_features=self.CFG.hidden_size)
+        self.fc_value2 = nn.Linear(in_features=self.CFG.hidden_size, out_features=1)
 
         """ Weight initializtion """
         self._create_weights()
@@ -109,7 +112,7 @@ class AlphaZeroNetwork(nn.Module):
         x = F.relu(x, inplace=True)
 
         """ Residual blocks """
-        for i in range(CFG.n_residual_block):
+        for i in range(self.CFG.n_residual_block):
             x = self.resnet(x)
 
         return x
