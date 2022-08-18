@@ -229,7 +229,7 @@ class Util:
         return next_node
     
     def load_model(self, model):
-        model.load_state_dict(torch.load(self.CFG.model_path, map_location=CFG.device))
+        model.load_state_dict(torch.load(self.CFG.model_path, map_location=self.CFG.device))
         print('Best model loaded.')
         
         with open(self.CFG.iteration_counter_path, mode='r') as f:
@@ -240,8 +240,7 @@ class Util:
         return iteration_counter
     
     def load_dataset(self, self_play):
-        dataset = np.load(CFG.dataset_path, allow_pickle=True)
-        dataset  = dataset.tolist()
-        self_play.dataset = dataset
+        dataset = np.load(self.CFG.dataset_path, allow_pickle=True)
+        self_play.dataset = dataset.tolist()
         print('Dataset loaded.')
         print('Dataset size:', len(dataset))
