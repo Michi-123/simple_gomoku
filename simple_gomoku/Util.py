@@ -229,7 +229,7 @@ class Util:
         return next_node
     
     def load_model(self, model):
-        model.load_state_dict(torch.load(self.CFG.model_path, map_location=device))
+        model.load_state_dict(torch.load(self.CFG.model_path, map_location=CFG.device))
         print('Best model loaded.')
         
         with open(self.CFG.iteration_counter_path, mode='r') as f:
