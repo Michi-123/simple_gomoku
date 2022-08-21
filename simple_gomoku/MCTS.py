@@ -107,7 +107,7 @@ class MCTS():
         Ｑ（相手にとっては－Ｑ）＋Ｕの最大値から、最良の行動を選ぶ
         """
         pucts = [] # PUCTの値
-        cpuct = self.CFG.puct # 1-6
+        cpuct = self.CFG.cpuct # 1-6
         s = node.n - 1 # Σ_b (N(s,b)) と同じこと
         child_nodes = self.util.get_child_nodes(node) # エッジの取得
 
