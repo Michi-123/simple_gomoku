@@ -168,7 +168,7 @@ class MCTS():
         """ 温度パラメーター """
         if self.train:
             """ 訓練時は最初のｎ手までは確率的に """
-            tau = 1 if play_count < self.CFG.tau_limit else 0
+            tau = self.CFG.tau if play_count < self.CFG.tau_limit else 0
         else:
             """ 評価時には決定的に """
             tau = 0
@@ -179,14 +179,19 @@ class MCTS():
 
         """ 探索(Exploration)か 経験の利用(Exploitation)か """
         if tau > 0:
-            """ 確率的に選択 """
+            """ ソフトマックスで方策を出力 """
             N_pow = np.power(N, 1/tau)
-            N_sum = np.sum(N_pow) + 1e-20
+            N_sum = np.sum(N_pow)
             pi = N_pow / N_sum
+
+            """ 最善手から1%以上離れていない手をソフトマックスで出力 """
+            M = np.where(pi < pi.max()-0.01, 0, pi)
+            M_sum = np.sum(M)
+            pi = M / M_sum
+
+            """ 方策からサンプリング """
             p = np.random.choice(pi, p=pi)
             index = np.argwhere(pi==p)[0][0].tolist()
-            """ このindexで行動すると、既に置き石がある目を上書きしてしまう。
-            また状態価値の教師データも変わってしまう。"""
 
         else:
             """ 決定的に選択 """
