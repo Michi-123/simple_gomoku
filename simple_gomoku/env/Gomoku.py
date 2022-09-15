@@ -45,8 +45,8 @@ class Gomoku():
         state = np.array(state).reshape(-1)
         return np.where(state==0)[0]
 
-    def show(self):
-        print(self.s)
+    def show(self, state):
+        print(state)
 
     def _pass(self):
         self.player = -self.player
