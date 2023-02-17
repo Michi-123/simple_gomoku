@@ -5,6 +5,7 @@ import numpy as np
 class Gomoku():
 
     def __init__(self, row=5, width=6):
+        self.state = None
         self.row = row
         self.width = width
         self.action_size = self.width * self.width
@@ -41,8 +42,8 @@ class Gomoku():
       
         return self.state, self.reward, self.done
 
-    def get_legal_actions(self, state):
-        state = np.array(state).reshape(-1)
+    def get_legal_actions(self):
+        state = np.array(self.state).reshape(-1)
         return np.where(state==0)[0]
 
     def show(self, state):
