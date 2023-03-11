@@ -6,6 +6,7 @@ class TicTacToe():
     def __init__(self):
         self.width = 3 #CFG.board_width
         self.action_size = self.width * self.width
+        self.state = None
         self.reset()
 
     def reset(self):
@@ -32,11 +33,11 @@ class TicTacToe():
 
         self.player = -self.player
         return self.state, self.reward, self.done
-
-    def get_legal_actions(self, state):
-        state = np.array(state, dtype=np.float32).reshape(-1)
+    
+    def get_legal_actions(self):
+        state = np.array(self.state).reshape(-1)
         return np.where(state==0)[0]
-
+    
     def _is_done(self, a):
         s = self.state
 
