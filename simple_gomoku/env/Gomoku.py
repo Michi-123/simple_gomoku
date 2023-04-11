@@ -49,6 +49,26 @@ class Gomoku():
     def show(self, state):
         print(state)
 
+    def render(self):
+        state = self.state
+        print("  ", end="")
+
+        for i in range(len(state)):
+            print(i, end=" ")
+        print()
+
+        for i, row in enumerate(state):
+            print(i, end=" ")
+            for piece in row:
+                if piece == -1:
+                    print("X", end=" ")
+                elif piece == 1:
+                    print("O", end=" ")
+                else:
+                    print("-", end=" ")
+            print()
+        print()
+
     def _pass(self):
         self.player = -self.player
         pass
