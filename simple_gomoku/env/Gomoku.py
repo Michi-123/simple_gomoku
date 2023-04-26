@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-
+# @title gomoku 
 class Gomoku():
 
-    def __init__(self, row=5, width=6):
+    def __init__(self, row=5, width=5):
         self.state = None
         self.row = row
         self.width = width
@@ -30,8 +30,9 @@ class Gomoku():
         self.player = -self.player
 
         if self._is_done(a):
+            # 打ち終わって終了なら勝ち
             self.done = True
-            self.reward = -1 # 打つ手がないので負け
+            self.reward = 1 
 
         elif self._is_draw():
             self.done = True
@@ -48,26 +49,6 @@ class Gomoku():
 
     def show(self, state):
         print(state)
-
-    def render(self):
-        state = self.state
-        print("  ", end="")
-
-        for i in range(len(state)):
-            print(i, end=" ")
-        print()
-
-        for i, row in enumerate(state):
-            print(i, end=" ")
-            for piece in row:
-                if piece == -1:
-                    print("X", end=" ")
-                elif piece == 1:
-                    print("O", end=" ")
-                else:
-                    print("-", end=" ")
-            print()
-        print()
 
     def _pass(self):
         self.player = -self.player
@@ -152,3 +133,23 @@ class Gomoku():
     def _get_search_directions(self):
         w = self.width
         return [1, w-1, w, w+1]
+
+    def render(self):
+        state = self.state
+        print("  ", end="")
+
+        for i in range(len(state)):
+            print(i, end=" ")
+        print()
+
+        for i, row in enumerate(state):
+            print(i, end=" ")
+            for piece in row:
+                if piece == -1:
+                    print("X", end=" ")
+                elif piece == 1:
+                    print("O", end=" ")
+                else:
+                    print("-", end=" ")
+            print()
+        print()
